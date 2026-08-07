@@ -1,6 +1,6 @@
 """
-ESP32-CAM Client
-================
+ROVERT ESP32 Communication Client
+=================================
 
 Handles HTTP communication between:
 
@@ -13,26 +13,57 @@ Arduino Mega
 
 import requests
 
-from config.settings import ESP32_IP, ESP32_PORT
 from communication.protocol import is_valid_command
 
 
 class ESPClient:
 
-    def __init__(self, ip=ESP32_IP, port=ESP32_PORT):
-        self.base_url = f"http://{ip}:{port}"
+    def __init__(self, ip="192.168.1.100", port=80):
+
+        self.ip = ip
+        self.port = port
+
+        self.update_urls()
+
+
+    def update_urls(self):
+        """
+        Updates ESP32 endpoints after IP change.
+        """
+
+        self.base_url = f"http://{self.ip}:{self.port}"
 
         self.stream_url = self.base_url + "/stream"
         self.sensor_url = self.base_url + "/sensors"
         self.command_url = self.base_url + "/command"
 
 
-    def get_sensor_data(self):
+
+    def change_ip(self, new_ip):
+
         """
-        Gets latest IR sensor data from ESP32-CAM.
+        Changes ESP32 IP address.
+
+        Example:
+        client.change_ip("192.168.1.55")
+        """
+
+        self.ip = new_ip
+
+        self.update_urls()
+
+        print(f"ESP32 IP changed to {self.ip}")
+
+
+
+    def get_sensor_data(self):
+
+        """
+        Gets latest IR sensor data from ESP32.
         """
 
         try:
+
             response = requests.get(
                 self.sensor_url,
                 timeout=1
@@ -42,7 +73,9 @@ class ESPClient:
 
             return response.json()
 
+
         except requests.RequestException:
+
             return {
                 "fl": 0,
                 "fr": 0,
@@ -54,10 +87,12 @@ class ESPClient:
 
 
     def send_command(self, command):
+
         """
-        Sends movement command to ESP32-CAM.
+        Sends movement command to ESP32.
 
         Commands:
+
         F = Forward
         B = Backward
         L = Left
@@ -66,16 +101,43 @@ class ESPClient:
         """
 
         if not is_valid_command(command):
+
             raise ValueError(
                 f"Invalid command: {command}"
             )
 
+
         try:
+
             requests.post(
                 self.command_url,
                 data=command,
                 timeout=1
             )
 
+
         except requests.RequestException:
-            pass
+
+            print("Failed to send command")
+
+
+
+    def test_connection(self):
+
+        """
+        Checks if ESP32 is reachable.
+        """
+
+        try:
+
+            response = requests.get(
+                self.base_url,
+                timeout=2
+            )
+
+            return response.status_code == 200
+
+
+        except requests.RequestException:
+
+            return False
