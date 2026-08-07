@@ -1,45 +1,25 @@
 """
-ROVERT Settings
-===============
-Configuration values that may change during testing.
+ROVERT Configuration Settings
+=============================
+
+Stores adjustable system settings.
 """
 
-# ==========================================================
-# ESP32 Configuration
-# ==========================================================
 
-ESP32_IP = "192.168.1.50"
+# ESP32-CAM Network Settings
+
+ESP32_IP = "192.168.1.100"
+
 ESP32_PORT = 80
 
-# ==========================================================
-# Camera
-# ==========================================================
 
-FRAME_WIDTH = 640
-FRAME_HEIGHT = 480
-SHOW_CAMERA = True
 
-# ==========================================================
-# YOLO
-# ==========================================================
+# Communication Settings
 
-YOLO_MODEL = "yolov8n.pt"
-CONFIDENCE_THRESHOLD = 0.45
-CLOSE_OBJECT_AREA_THRESHOLD = 0.18
+REQUEST_TIMEOUT = 2
 
-# ==========================================================
-# Navigation
-# ==========================================================
 
-LOOP_DELAY = 0.5
 
-REVERSE_TIME = 0.8
-TURN_TIME = 0.6
+# Vision Settings
 
-# ==========================================================
-# Debugging
-# ==========================================================
-
-DEBUG = True
-SAVE_LOGS = True
-VERBOSE = True
+CONFIDENCE_THRESHOLD = 0.5

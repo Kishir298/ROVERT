@@ -15,6 +15,8 @@ ESP32-CAM
 Arduino Mega
 """
 
+
+import sys
 import time
 
 from communication.esp_client import ESPClient
@@ -22,52 +24,97 @@ from vision.camera import CameraStream
 from vision.detector import ObjectDetector
 
 
+
 def main():
 
+
     print("Starting ROVERT...")
+
+
+
+    # -----------------------------
+    # ESP32 IP Configuration
+    # -----------------------------
+
+    if len(sys.argv) > 1:
+
+        esp_ip = sys.argv[1]
+
+    else:
+
+        esp_ip = "192.168.1.100"
+
+
+
+    print(
+        f"Using ESP32 IP: {esp_ip}"
+    )
+
 
 
     # -----------------------------
     # ESP32 Connection
     # -----------------------------
-
-    esp = ESPClient(
-        ip="192.168.1.100"
-    )
+    esp = ESPClient()
 
 
-    esp_connected = esp.test_connection()
 
+    if esp.test_connection():
 
-    if esp_connected:
         print("ESP32 connected")
+
+        esp_connected = True
+
+
     else:
+
         print("ESP32 not connected")
+
+        esp_connected = False
+
 
 
     # -----------------------------
-    # Vision System
+    # Camera System
     # -----------------------------
 
     camera = None
 
 
+
     if esp_connected:
+
 
         camera = CameraStream(
             esp.stream_url
         )
 
-        print("Camera connected")
+
+        print(
+            "Camera connected"
+        )
+
 
     else:
 
-        print("Camera disabled (ESP32 offline)")
 
+        print(
+            "Camera disabled (ESP32 offline)"
+        )
+
+
+
+    # -----------------------------
+    # Object Detection
+    # -----------------------------
 
     detector = ObjectDetector()
 
-    print("Vision system loaded")
+
+    print(
+        "Vision system loaded"
+    )
+
 
 
     # -----------------------------
@@ -76,16 +123,17 @@ def main():
 
     try:
 
+
         while True:
 
 
-            # -----------------------------
-            # Camera Detection
-            # -----------------------------
+
+            # Camera frame
 
             if camera:
 
                 frame = camera.get_frame()
+
 
             else:
 
@@ -93,9 +141,16 @@ def main():
 
 
 
+
+            # Object detection
+
             if frame is not None:
 
-                detections = detector.detect(frame)
+
+                detections = detector.detect(
+                    frame
+                )
+
 
                 print(
                     "Objects:",
@@ -104,11 +159,11 @@ def main():
 
 
 
-            # -----------------------------
-            # Sensor Data
-            # -----------------------------
+
+            # Sensor data
 
             sensors = esp.get_sensor_data()
+
 
 
             print(
@@ -118,17 +173,24 @@ def main():
 
 
 
-            # -----------------------------
-            # Movement Logic
-            # -----------------------------
 
-            if sensors["ir_event"]:
+            # Movement logic
 
-                esp.send_command("S")
+            if sensors.get("ir_event"):
+
+
+                esp.send_command(
+                    "S"
+                )
+
 
             else:
 
-                esp.send_command("F")
+
+                esp.send_command(
+                    "F"
+                )
+
 
 
 
@@ -136,13 +198,19 @@ def main():
 
 
 
+
     except KeyboardInterrupt:
 
-        print("\nStopping ROVERT...")
+
+        print(
+            "\nStopping ROVERT..."
+        )
+
 
 
 
     finally:
+
 
         if camera:
 
@@ -150,7 +218,10 @@ def main():
 
 
 
-        print("ROVERT stopped.")
+        print(
+            "ROVERT stopped."
+        )
+
 
 
 
