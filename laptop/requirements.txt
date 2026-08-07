@@ -1,0 +1,36 @@
+# ROVERT Laptop Dependencies
+
+# HTTP Communication
+requests
+
+# Computer Vision
+opencv-python
+
+# AI Object Detection
+ultralytics
+
+# Deep Learning Backend
+torch
+torchvision
+torchaudio
+
+# Numerical Processing
+numpy
+
+# Image Processing Support
+Pillow
+
+# Configuration / Environment
+python-dotenv
+
+# Logging / Utilities
+tqdm
+
+# YOLO Dependencies
+PyYAML
+scipy
+matplotlib
+pandas
+
+# Machine Learning Utilities
+psutil

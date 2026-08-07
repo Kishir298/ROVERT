@@ -1,6 +1,6 @@
 """
-ROVERT Main Controller
-======================
+ROVERT Main Control System
+==========================
 
 Controls:
 
@@ -26,15 +26,20 @@ def main():
 
     print("Starting ROVERT...")
 
+
     # -----------------------------
     # ESP32 Connection
     # -----------------------------
 
     esp = ESPClient(
-        ip="192.168.1.100"   # change this to ESP32 IP
+        ip="192.168.1.100"
     )
 
-    if esp.test_connection():
+
+    esp_connected = esp.test_connection()
+
+
+    if esp_connected:
         print("ESP32 connected")
     else:
         print("ESP32 not connected")
@@ -44,9 +49,21 @@ def main():
     # Vision System
     # -----------------------------
 
-    camera = CameraStream(
-        esp.stream_url
-    )
+    camera = None
+
+
+    if esp_connected:
+
+        camera = CameraStream(
+            esp.stream_url
+        )
+
+        print("Camera connected")
+
+    else:
+
+        print("Camera disabled (ESP32 offline)")
+
 
     detector = ObjectDetector()
 
@@ -62,9 +79,18 @@ def main():
         while True:
 
 
-            # Get camera frame
+            # -----------------------------
+            # Camera Detection
+            # -----------------------------
 
-            frame = camera.get_frame()
+            if camera:
+
+                frame = camera.get_frame()
+
+            else:
+
+                frame = None
+
 
 
             if frame is not None:
@@ -77,9 +103,13 @@ def main():
                 )
 
 
-            # Get sensors
+
+            # -----------------------------
+            # Sensor Data
+            # -----------------------------
 
             sensors = esp.get_sensor_data()
+
 
             print(
                 "Sensors:",
@@ -87,7 +117,10 @@ def main():
             )
 
 
-            # Example movement logic
+
+            # -----------------------------
+            # Movement Logic
+            # -----------------------------
 
             if sensors["ir_event"]:
 
@@ -96,6 +129,7 @@ def main():
             else:
 
                 esp.send_command("F")
+
 
 
             time.sleep(0.1)
@@ -107,7 +141,16 @@ def main():
         print("\nStopping ROVERT...")
 
 
-        camera.stop()
+
+    finally:
+
+        if camera:
+
+            camera.stop()
+
+
+
+        print("ROVERT stopped.")
 
 
 
