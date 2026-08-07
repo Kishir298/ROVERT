@@ -1,82 +1,111 @@
+"""
+ROVERT Main Controller
+======================
+
+Controls:
+
+Laptop
+ |
+ | HTTP
+ |
+ESP32-CAM
+ |
+ | UART
+ |
+Arduino Mega
+"""
+
+import time
+
 from communication.esp_client import ESPClient
 from vision.camera import CameraStream
 from vision.detector import ObjectDetector
 
-import argparse
-
-
 
 def main():
 
-    parser = argparse.ArgumentParser(
-        description="ROVERT Control System"
-    )
-
-
-    parser.add_argument(
-        "--ip",
-        required=True,
-        help="ESP32-CAM IP address"
-    )
-
-
-    args = parser.parse_args()
-
-
     print("Starting ROVERT...")
 
+    # -----------------------------
+    # ESP32 Connection
+    # -----------------------------
 
     esp = ESPClient(
-        args.ip
+        ip="192.168.1.100"   # change this to ESP32 IP
     )
 
+    if esp.test_connection():
+        print("ESP32 connected")
+    else:
+        print("ESP32 not connected")
+
+
+    # -----------------------------
+    # Vision System
+    # -----------------------------
 
     camera = CameraStream(
         esp.stream_url
     )
 
-
     detector = ObjectDetector()
 
+    print("Vision system loaded")
 
-    print(
-        f"Connected to ESP32-CAM: {args.ip}"
-    )
 
-    print(
-        "ROVERT initialized successfully."
-    )
-
+    # -----------------------------
+    # Main Loop
+    # -----------------------------
 
     try:
 
         while True:
 
+
+            # Get camera frame
+
             frame = camera.get_frame()
 
 
-            if frame is None:
-                continue
+            if frame is not None:
+
+                detections = detector.detect(frame)
+
+                print(
+                    "Objects:",
+                    detections
+                )
 
 
-            detections = detector.detect(
-                frame
-            )
+            # Get sensors
 
+            sensors = esp.get_sensor_data()
 
             print(
-                detections
+                "Sensors:",
+                sensors
             )
+
+
+            # Example movement logic
+
+            if sensors["ir_event"]:
+
+                esp.send_command("S")
+
+            else:
+
+                esp.send_command("F")
+
+
+            time.sleep(0.1)
+
 
 
     except KeyboardInterrupt:
 
-        print(
-            "\nStopping ROVERT..."
-        )
+        print("\nStopping ROVERT...")
 
-
-    finally:
 
         camera.stop()
 
